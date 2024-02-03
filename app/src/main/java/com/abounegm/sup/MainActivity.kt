@@ -25,12 +25,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
@@ -40,6 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.abounegm.sup.ui.theme.СУПBalanceTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,22 +86,36 @@ fun App() {
 
 @Composable
 fun CardNumber() {
-    val emptyCardNumber = "0 000000 000000"
-    var cardNumber by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val store = BalanceStore(context)
+    val emptyCardNumber = "0".repeat(13)
+    val cardNumber = store.getCardNumber.collectAsState(initial = emptyCardNumber)
     var editing by remember { mutableStateOf(false) }
 
     if (editing) {
+        val cardNumberField = remember { mutableStateOf(cardNumber.value) }
         Row {
             TextField(
                 modifier = Modifier.width(180.dp),
-                placeholder = { Text(emptyCardNumber) },
-                value = cardNumber,
+                placeholder = {
+                    Text(CardMaskTransformation().filter(AnnotatedString(emptyCardNumber)).text)
+                },
+                value = cardNumberField.value,
                 singleLine = true,
-                onValueChange = { cardNumber = it.filter { it.isDigit() }.take(13) },
+                onValueChange = {
+                    cardNumberField.value = it
+                        .filter { it.isDigit() }
+                        .take(13)
+                },
                 visualTransformation = CardMaskTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            IconButton(onClick = { editing = false }) {
+            IconButton(onClick = {
+                CoroutineScope(Dispatchers.IO).launch {
+                    store.saveCardNumber(cardNumberField.value)
+                }
+                editing = false
+            }) {
                 Icon(Icons.Outlined.Check, "Confirm")
             }
         }
@@ -104,8 +123,10 @@ fun CardNumber() {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = CardMaskTransformation()
-                    .filter(AnnotatedString(cardNumber))
-                    .text.ifBlank { emptyCardNumber }.toString(),
+                    .filter(AnnotatedString(cardNumber.value
+                        .ifBlank { emptyCardNumber }
+                        .toString())
+                    ).text,
             )
             IconButton(onClick = { editing = true }) {
                 Icon(Icons.Outlined.Edit, "Edit")
@@ -116,7 +137,7 @@ fun CardNumber() {
 }
 
 /* Taken from https://stackoverflow.com/a/69064274 */
-class CardMaskTransformation() : VisualTransformation {
+class CardMaskTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         // 0 000000 000000
         var out = ""

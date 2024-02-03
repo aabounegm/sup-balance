@@ -114,8 +114,8 @@ fun CardNumber() {
                 },
                 value = cardNumberField.value,
                 singleLine = true,
-                onValueChange = {
-                    cardNumberField.value = it
+                onValueChange = { value ->
+                    cardNumberField.value = value
                         .filter { it.isDigit() }
                         .take(cardNumberLength)
                     validationError = null

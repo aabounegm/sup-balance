@@ -86,14 +86,26 @@ fun App() {
 
 @Composable
 fun CardNumber() {
+    val cardNumberLength = 13
     val context = LocalContext.current
     val store = BalanceStore(context)
-    val emptyCardNumber = "0".repeat(13)
+    val emptyCardNumber = "0".repeat(cardNumberLength)
     val cardNumber = store.getCardNumber.collectAsState(initial = emptyCardNumber)
     var editing by remember { mutableStateOf(false) }
 
     if (editing) {
         val cardNumberField = remember { mutableStateOf(cardNumber.value) }
+        var validationError by remember { mutableStateOf<String?>(null) }
+
+        fun validate(input: String): Boolean {
+            validationError = if (input.length != cardNumberLength) {
+                "The card number must be exactly $cardNumberLength digits"
+            } else {
+                null
+            }
+            return validationError == null
+        }
+
         Row {
             TextField(
                 modifier = Modifier.width(180.dp),
@@ -105,16 +117,23 @@ fun CardNumber() {
                 onValueChange = {
                     cardNumberField.value = it
                         .filter { it.isDigit() }
-                        .take(13)
+                        .take(cardNumberLength)
+                    validationError = null
                 },
                 visualTransformation = CardMaskTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = validationError != null,
+                supportingText = {
+                    validationError?.let { Text(it) }
+                }
             )
             IconButton(onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
                     store.saveCardNumber(cardNumberField.value)
                 }
-                editing = false
+                if (validate(cardNumberField.value)) {
+                    editing = false
+                }
             }) {
                 Icon(Icons.Outlined.Check, "Confirm")
             }

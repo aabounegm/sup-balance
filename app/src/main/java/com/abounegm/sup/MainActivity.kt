@@ -65,9 +65,13 @@ fun App() {
             modifier = Modifier.padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Header()
+            Box(modifier = Modifier.padding(10.dp)) {
+                Header()
+            }
             DailyLimit()
-            Balance()
+            Box(modifier = Modifier.padding(10.dp)) {
+                Balance()
+            }
             Divider(thickness = 2.dp)
             History()
         }

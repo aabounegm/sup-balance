@@ -10,15 +10,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,15 +76,77 @@ fun App() {
 }
 
 @Composable
+fun CardNumber() {
+    val emptyCardNumber = "0 000000 000000"
+    var cardNumber by remember { mutableStateOf("") }
+    var editing by remember { mutableStateOf(false) }
+
+    if (editing) {
+        Row {
+            TextField(
+                modifier = Modifier.width(180.dp),
+                placeholder = { Text(emptyCardNumber) },
+                value = cardNumber,
+                singleLine = true,
+                onValueChange = { cardNumber = it.filter { it.isDigit() }.take(13) },
+                visualTransformation = CardMaskTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            IconButton(onClick = { editing = false }) {
+                Icon(Icons.Outlined.Check, "Confirm")
+            }
+        }
+    } else {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = CardMaskTransformation()
+                    .filter(AnnotatedString(cardNumber))
+                    .text.ifBlank { emptyCardNumber }.toString(),
+            )
+            IconButton(onClick = { editing = true }) {
+                Icon(Icons.Outlined.Edit, "Edit")
+            }
+        }
+
+    }
+}
+
+/* Taken from https://stackoverflow.com/a/69064274 */
+class CardMaskTransformation() : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        // 0 000000 000000
+        var out = ""
+        for (i in text.text.indices) {
+            out += text.text[i]
+            if (i == 0 || i == 6) out += " "
+        }
+
+        val numberOffsetTranslator = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset == 0) return 0
+                if (offset <= 7) return offset + 1
+                return offset + 2
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (offset <= 1) return offset
+                if (offset <= 8) return offset - 1
+                return offset - 2
+            }
+        }
+
+        return TransformedText(AnnotatedString(out), numberOffsetTranslator)
+    }
+}
+
+@Composable
 fun Header() {
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Box {
-            Text(
-                text = "Card number"
-            )
+            CardNumber()
         }
         Box {
             Text(

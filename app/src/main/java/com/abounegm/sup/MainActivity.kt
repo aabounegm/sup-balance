@@ -3,18 +3,25 @@ package com.abounegm.sup
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
@@ -151,7 +159,6 @@ fun CardNumber() {
                 Icon(Icons.Outlined.Edit, "Edit")
             }
         }
-
     }
 }
 
@@ -185,6 +192,20 @@ class CardMaskTransformation : VisualTransformation {
 
 @Composable
 fun Header() {
+    val context = LocalContext.current
+    val store = BalanceStore(context)
+    var updating by remember { mutableStateOf(false) }
+    val lastUpdated = store.getLastUpdated.collectAsState(initial = "Never")
+
+    val infiniteTransition = rememberInfiniteTransition(label = "infinite rotation (loading)")
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0F,
+        targetValue = 360F,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing)
+        ), label = "infinite rotation"
+    )
+
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -193,9 +214,29 @@ fun Header() {
             CardNumber()
         }
         Box {
-            Text(
-                text = "Last updated:"
-            )
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Last updated: ")
+                    IconButton(
+                        onClick = {
+                            updating = true
+                            CoroutineScope(Dispatchers.IO).launch {
+                                store.updateValues()
+                                updating = false
+                            }
+                        },
+                        modifier = Modifier
+                            .width(25.dp)
+                            .height(25.dp)
+                            .graphicsLayer { rotationZ = if (updating) angle else 0F }
+                    )
+                    {
+                        Icon(Icons.Outlined.Refresh, "Refresh")
+                    }
+                }
+                Text(lastUpdated.value)
+            }
+
         }
 
     }
@@ -203,6 +244,10 @@ fun Header() {
 
 @Composable
 fun DailyLimit() {
+    val context = LocalContext.current
+    val store = BalanceStore(context)
+    val remainingAmount = store.getRemaining.collectAsState(initial = 0)
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
@@ -210,7 +255,7 @@ fun DailyLimit() {
     ) {
         Text(
             modifier = Modifier.alignByBaseline(),
-            text = "750",
+            text = remainingAmount.value.toString(),
             fontSize = 60.sp,
         )
         Text(
@@ -224,12 +269,16 @@ fun DailyLimit() {
 
 @Composable
 fun Balance() {
+    val context = LocalContext.current
+    val store = BalanceStore(context)
+    val balance = store.getBalance.collectAsState(initial = 0)
+
     Row(
         Modifier.fillMaxWidth(),
     ) {
         Text("Balance: ")
         Text(
-            text = "9000 ₽"
+            text = "${balance.value} ₽"
         )
     }
 

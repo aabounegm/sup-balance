@@ -90,7 +90,7 @@ data class BalanceResponse(
 
 const val apiBase = "https://meal.gift-cards.ru/api/1/cards"
 
-fun getLimits(cardNumber: String): LimitsResponse.LimitsData.Limit {
+fun fetchLimits(cardNumber: String): LimitsResponse.LimitsData.Limit {
     val json = URL("$apiBase/$cardNumber/limits").readText()
     val response = Gson().fromJson(json, LimitsResponse::class.java)
     if (response.status != "OK") {
@@ -102,7 +102,7 @@ fun getLimits(cardNumber: String): LimitsResponse.LimitsData.Limit {
     return response.data.limits[0]
 }
 
-fun getBalance(cardNumber: String): BalanceResponse.BalanceData {
+fun fetchBalance(cardNumber: String): BalanceResponse.BalanceData {
     val json = URL("$apiBase/$cardNumber?limit=10").readText()
     val response = Gson().fromJson(json, BalanceResponse::class.java)
     if (response.status != "OK") {

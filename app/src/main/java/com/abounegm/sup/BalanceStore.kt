@@ -47,8 +47,8 @@ class BalanceStore(private val context: Context) {
 
     suspend fun updateValues() {
         val cardNumber = getCardNumber.first()
-        val limit = getLimits(cardNumber)
-        val balance = getBalance(cardNumber)
+        val limit = fetchLimits(cardNumber)
+        val balance = fetchBalance(cardNumber)
         context.dataStore.edit { preferences ->
             preferences[BALANCE_KEY] = balance.balance.availableAmount
             preferences[REMAINING_KEY] = limit.value - limit.usedValue

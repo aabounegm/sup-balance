@@ -7,9 +7,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -47,13 +49,19 @@ class BalanceStore(private val context: Context) {
 
     suspend fun updateValues() {
         val cardNumber = getCardNumber.first()
-        val limit = fetchLimits(cardNumber)
-        val balance = fetchBalance(cardNumber)
-        context.dataStore.edit { preferences ->
-            preferences[BALANCE_KEY] = balance.balance.availableAmount
-            preferences[REMAINING_KEY] = limit.value - limit.usedValue
-            preferences[LAST_UPDATED_KEY] =
-                SimpleDateFormat.getTimeInstance().format(Calendar.getInstance().time)
+        withContext(Dispatchers.IO) {
+            try {
+                val limit = fetchLimits(cardNumber)
+                val balance = fetchBalance(cardNumber)
+                context.dataStore.edit { preferences ->
+                    preferences[BALANCE_KEY] = balance.balance.availableAmount
+                    preferences[REMAINING_KEY] = limit.value - limit.usedValue
+                    preferences[LAST_UPDATED_KEY] =
+                        SimpleDateFormat.getTimeInstance().format(Calendar.getInstance().time)
+                }
+            } catch (e: Exception) {
+                println("An error occurred: $e")
+            }
         }
     }
 }

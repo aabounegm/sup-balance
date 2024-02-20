@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +20,8 @@ class BalanceStore(private val context: Context) {
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("cardInfo")
         private val CARD_NUMBER_KEY = stringPreferencesKey("card_number")
         private val LAST_UPDATED_KEY = stringPreferencesKey("last_updated")
-        private val BALANCE_KEY = intPreferencesKey("total_balance")
-        private val REMAINING_KEY = intPreferencesKey("remaining_limit")
+        private val BALANCE_KEY = floatPreferencesKey("total_balance")
+        private val REMAINING_KEY = floatPreferencesKey("remaining_limit")
     }
 
     val getCardNumber: Flow<String> = context.dataStore.data.map { preferences ->
@@ -33,12 +33,12 @@ class BalanceStore(private val context: Context) {
             .format(Calendar.getInstance().time)
     }
 
-    val getBalance: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[BALANCE_KEY] ?: 0
+    val getBalance: Flow<Float> = context.dataStore.data.map { preferences ->
+        preferences[BALANCE_KEY] ?: 0f
     }
 
-    val getRemaining: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[REMAINING_KEY] ?: 0
+    val getRemaining: Flow<Float> = context.dataStore.data.map { preferences ->
+        preferences[REMAINING_KEY] ?: 0f
     }
 
     suspend fun saveCardNumber(cardNumber: String) {

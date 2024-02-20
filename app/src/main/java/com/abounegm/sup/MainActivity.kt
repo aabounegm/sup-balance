@@ -53,6 +53,7 @@ import com.abounegm.sup.ui.theme.СУПBalanceTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -255,7 +256,7 @@ fun DailyLimit() {
     ) {
         Text(
             modifier = Modifier.alignByBaseline(),
-            text = remainingAmount.value.toString(),
+            text = DecimalFormat("#.##").format(remainingAmount.value),
             fontSize = 60.sp,
         )
         Text(
@@ -271,15 +272,12 @@ fun DailyLimit() {
 fun Balance() {
     val context = LocalContext.current
     val store = BalanceStore(context)
-    val balance = store.getBalance.collectAsState(initial = 0)
+    val balance = store.getBalance.collectAsState(initial = 0f)
 
     Row(
         Modifier.fillMaxWidth(),
     ) {
-        Text("Balance: ")
-        Text(
-            text = "${balance.value} ₽"
-        )
+        Text("Balance: ${DecimalFormat("#.##").format(balance.value)} ₽")
     }
 
 }

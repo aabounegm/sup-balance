@@ -15,8 +15,8 @@ data class LimitsResponse(
     ) {
         data class Limit(
             val cycle: String,
-            val value: Int,
-            val usedValue: Int,
+            val value: Float,
+            val usedValue: Float,
         )
 
         override fun equals(other: Any?): Boolean {
@@ -46,10 +46,10 @@ data class BalanceResponse(
         val smsNotificationAvailable: Boolean,
         val cardType: String,
     ) {
-        data class BalanceDetails(val availableAmount: Int)
+        data class BalanceDetails(val availableAmount: Float)
         data class BalanceHistory(
             val time: String,
-            val amount: Int,
+            val amount: Float,
             val locationName: Array<String>,
             val trnType: Int,
             val mcc: Int,
@@ -75,7 +75,7 @@ data class BalanceResponse(
 
             override fun hashCode(): Int {
                 var result = time.hashCode()
-                result = 31 * result + amount
+                result = 31 * result + amount.hashCode()
                 result = 31 * result + locationName.contentHashCode()
                 result = 31 * result + trnType
                 result = 31 * result + mcc

@@ -3,12 +3,19 @@ package com.abounegm.sup
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.ImageProvider
+import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.components.CircleIconButton
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -17,9 +24,16 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class BalanceWidget : GlanceAppWidget() {
 
@@ -48,6 +62,7 @@ class BalanceWidget : GlanceAppWidget() {
         val remainingAmount = store.getRemaining.collectAsState(initial = 0f)
         val balance = store.getBalance.collectAsState(initial = 0f)
         val lastUpdated = store.getLastUpdated.collectAsState(initial = "")
+        var updating by remember { mutableStateOf(false) }
 
         Column(modifier = GlanceModifier.fillMaxHeight()) {
             Row(
@@ -55,9 +70,32 @@ class BalanceWidget : GlanceAppWidget() {
                 horizontalAlignment = Alignment.End,
             ) {
                 Text(
-                    text = "Last updated:\n${lastUpdated.value}",
+                    text = lastUpdated.value,
                     style = TextStyle(fontSize = 10.sp),
+                    modifier = GlanceModifier.padding(5.dp, 0.dp)
                 )
+                if (updating) {
+                    CircularProgressIndicator(
+                        GlanceModifier.size(16.dp),
+                        color = ColorProvider(Color.Blue),
+                    )
+                } else {
+                    CircleIconButton(
+                        imageProvider = ImageProvider(R.drawable.baseline_refresh_24),
+                        contentDescription = "refresh",
+                        onClick = {
+                            updating = true
+                            CoroutineScope(Dispatchers.IO).launch {
+                                store.updateValues()
+                                updating = false
+                            }
+                        },
+                        modifier = GlanceModifier
+                            .width(20.dp)
+                            .height(16.dp)
+                            .padding(0.dp, 0.dp, 4.dp, 0.dp)
+                    )
+                }
             }
             Row(
                 modifier = GlanceModifier

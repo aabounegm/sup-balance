@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.ImageProvider
+import androidx.glance.action.actionStartActivity
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.components.CircleIconButton
@@ -50,6 +52,7 @@ class BalanceWidget : GlanceAppWidget() {
                     .fillMaxHeight()
                     .padding(8.dp)
                     .background(Color.White)
+                    .clickable(actionStartActivity<MainActivity>())
             ) {
                 WidgetBody(context)
             }

@@ -55,6 +55,7 @@ import java.text.DecimalFormat
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ensureBackgroundUpdatesRegistered(applicationContext)
         setContent {
             СУПBalanceTheme {
                 // A surface container using the 'background' color from the theme

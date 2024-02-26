@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -191,6 +193,7 @@ fun Header() {
     val context = LocalContext.current
     val store = BalanceStore(context)
     var updating by remember { mutableStateOf(false) }
+    var errorMsg: String? by remember { mutableStateOf(null) }
     val lastUpdated = store.getLastUpdated.collectAsState(initial = "Never")
 
     Row(
@@ -211,7 +214,12 @@ fun Header() {
                             onClick = {
                                 updating = true
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    store.updateValues()
+                                    try {
+                                        store.updateValues()
+                                    } catch (e: Exception) {
+                                        println(e)
+                                        errorMsg = e.message
+                                    }
                                     updating = false
                                 }
                             },
@@ -223,9 +231,30 @@ fun Header() {
                 }
                 Text(lastUpdated.value)
             }
-
         }
+    }
 
+    if (errorMsg != null) {
+        AlertDialog(
+            title = {
+                Text("Error")
+            },
+            text = {
+                Text(text = "An error occurred while fetching data:\n$errorMsg")
+            },
+            onDismissRequest = {
+                errorMsg = null
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        errorMsg = null
+                    }
+                ) {
+                    Text("Ok")
+                }
+            },
+        )
     }
 }
 

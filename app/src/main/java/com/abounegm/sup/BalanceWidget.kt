@@ -89,8 +89,13 @@ class BalanceWidget : GlanceAppWidget() {
                         onClick = {
                             updating = true
                             CoroutineScope(Dispatchers.IO).launch {
-                                store.updateValues()
-                                updating = false
+                                try {
+                                    store.updateValues()
+                                } catch (e: Exception) {
+                                    println(e)
+                                } finally {
+                                    updating = false
+                                }
                             }
                         },
                         modifier = GlanceModifier

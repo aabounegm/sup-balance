@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.abounegm.sup";
+option java_multiple_files = true;
+
+enum TransactionType {
+  FAST_FOOD = 0;
+  RESTAURANT = 1;
+  INCOMING = 2;
+}
+
+message HistoryItem {
+  float amount = 1;
+  TransactionType type = 2;
+  string name = 3;
+  google.protobuf.Timestamp time = 4;
+}
+
+message History {
+  repeated HistoryItem transactions = 1;
+}

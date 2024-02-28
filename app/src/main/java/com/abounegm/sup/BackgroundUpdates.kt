@@ -15,7 +15,7 @@ fun ensureBackgroundUpdatesRegistered(context: Context) {
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
     val updateRequest =
-        PeriodicWorkRequestBuilder<UpdateBalanceWorker>(5, TimeUnit.MINUTES)
+        PeriodicWorkRequestBuilder<UpdateBalanceWorker>(15, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
     WorkManager

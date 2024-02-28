@@ -56,8 +56,7 @@ class BalanceStore(private val context: Context) {
     }
 
     val getLastUpdated: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[LAST_UPDATED_KEY] ?: SimpleDateFormat.getTimeInstance()
-            .format(Calendar.getInstance().time)
+        preferences[LAST_UPDATED_KEY] ?: "Never"
     }
 
     val getBalance: Flow<Float> = context.dataStore.data.map { preferences ->

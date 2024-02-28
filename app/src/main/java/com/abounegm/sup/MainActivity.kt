@@ -85,7 +85,7 @@ fun App() {
                 Balance()
             }
             Divider(thickness = 2.dp)
-            History()
+            HistorySection()
         }
     }
 
@@ -299,12 +299,16 @@ fun Balance() {
 }
 
 @Composable
-fun History() {
+fun HistorySection() {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
     ) {
-        Text("History", fontSize = 24.sp)
+        Text(
+            "History",
+            fontSize = 24.sp,
+            style = TextStyle(textDecoration = TextDecoration.Underline)
+        )
     }
     ListItem(
         leadingContent = {

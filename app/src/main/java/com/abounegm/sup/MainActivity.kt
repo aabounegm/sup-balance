@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -217,33 +218,32 @@ fun Header() {
         Box {
             CardNumber()
         }
-        Box {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Last updated: ")
-                    if (updating) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    } else {
-                        IconButton(
-                            onClick = {
-                                updating = true
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    try {
-                                        store.updateValues()
-                                    } catch (e: Exception) {
-                                        println(e)
-                                        errorMsg = e.message
-                                    }
-                                    updating = false
-                                }
-                            },
-                            modifier = Modifier.size(25.dp)
-                        ) {
-                            Icon(Icons.Outlined.Refresh, "Refresh")
+        Row {
+            Text(
+                text = "Last updated\n${lastUpdated.value}",
+                style = TextStyle(textAlign = TextAlign.End, fontSize = 15.sp),
+                modifier = Modifier.padding(4.dp, 0.dp)
+            )
+            if (updating) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            } else {
+                IconButton(
+                    onClick = {
+                        updating = true
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                store.updateValues()
+                            } catch (e: Exception) {
+                                println(e)
+                                errorMsg = e.message
+                            }
+                            updating = false
                         }
-                    }
+                    },
+                    modifier = Modifier.size(25.dp)
+                ) {
+                    Icon(Icons.Outlined.Refresh, "Refresh")
                 }
-                Text(lastUpdated.value)
             }
         }
     }

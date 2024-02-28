@@ -99,7 +99,11 @@ fun fetchLimits(cardNumber: String): LimitsResponse.LimitsData.Limit {
     if (response.data.limits.isEmpty()) {
         throw Exception("SUP API returned an empty list")
     }
-    return response.data.limits[0]
+    return response.data.limits.firstOrNull() ?: LimitsResponse.LimitsData.Limit(
+        "",
+        0f,
+        0f
+    )
 }
 
 fun fetchBalance(cardNumber: String): BalanceResponse.BalanceData {

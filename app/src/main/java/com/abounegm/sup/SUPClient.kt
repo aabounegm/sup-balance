@@ -52,7 +52,7 @@ data class BalanceResponse(
             val amount: Float,
             val locationName: Array<String>,
             val trnType: Int,
-            val mcc: Int,
+            val mcc: String,
             val currency: String,
             val merchantId: String,
             val reversal: Boolean,
@@ -78,7 +78,7 @@ data class BalanceResponse(
                 result = 31 * result + amount.hashCode()
                 result = 31 * result + locationName.contentHashCode()
                 result = 31 * result + trnType
-                result = 31 * result + mcc
+                result = 31 * result + mcc.hashCode()
                 result = 31 * result + currency.hashCode()
                 result = 31 * result + merchantId.hashCode()
                 result = 31 * result + reversal.hashCode()

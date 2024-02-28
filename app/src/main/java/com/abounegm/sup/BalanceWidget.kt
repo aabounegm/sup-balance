@@ -98,6 +98,8 @@ class BalanceWidget : GlanceAppWidget() {
                                 }
                             }
                         },
+                        contentColor = ColorProvider(Color.Black),
+                        backgroundColor = ColorProvider(Color.White),
                         modifier = GlanceModifier
                             .width(20.dp)
                             .height(16.dp)

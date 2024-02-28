@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.InputStream
 import java.io.OutputStream
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.OffsetDateTime
 import java.util.Calendar
@@ -89,7 +90,8 @@ class BalanceStore(private val context: Context) {
             preferences[BALANCE_KEY] = balance.balance.availableAmount
             preferences[REMAINING_KEY] = limit.value - limit.usedValue
             preferences[LAST_UPDATED_KEY] =
-                SimpleDateFormat.getTimeInstance().format(Calendar.getInstance().time)
+                SimpleDateFormat.getTimeInstance(DateFormat.SHORT)
+                    .format(Calendar.getInstance().time)
         }
         context.historyStore.updateData {
             val items = balance.history.map {

@@ -352,7 +352,7 @@ fun HistoryListItem(item: HistoryItem) {
                             0,
                             128,
                             0
-                        ) else Color.Black
+                        ) else Color.Unspecified
                     )
                 )
                 Text(

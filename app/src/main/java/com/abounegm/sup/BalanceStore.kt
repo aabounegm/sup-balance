@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.datastore.preferences.protobuf.InvalidProtocolBufferException
+import androidx.glance.appwidget.updateAll
 import com.google.protobuf.Timestamp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -107,5 +108,6 @@ class BalanceStore(private val context: Context) {
             }
             History.newBuilder().addAllTransactions(items).build()
         }
+        BalanceWidget().updateAll(context)
     }
 }

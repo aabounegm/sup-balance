@@ -3,6 +3,7 @@ package com.abounegm.sup
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
@@ -37,20 +41,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.abounegm.sup.ui.theme.СУПBalanceTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.text.DateFormat
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -300,6 +313,10 @@ fun Balance() {
 
 @Composable
 fun HistorySection() {
+    val store = BalanceStore(LocalContext.current)
+    val transactions = store.getHistory.map { it.transactionsList }
+        .collectAsState(initial = listOf())
+
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
@@ -310,21 +327,64 @@ fun HistorySection() {
             style = TextStyle(textDecoration = TextDecoration.Underline)
         )
     }
+    LazyColumn {
+        items(transactions.value) {
+            HistoryListItem(it)
+        }
+    }
+}
+
+@Composable
+fun HistoryListItem(item: HistoryItem) {
     ListItem(
-        leadingContent = {
-            Text("icon")
-        },
-        headlineContent = {
-            Text("shop name")
-        },
+        leadingContent = { ItemIcon(item.type) },
+        // Some names have repeating spaces in the middle, and it bothers me 😁
+        headlineContent = { Text(item.name.replace("\\s+".toRegex(), " ")) },
         trailingContent = {
             Column(
                 horizontalAlignment = Alignment.End
             ) {
-                Text("amount", fontSize = 16.sp)
-                Text("time")
+                Text(
+                    text = "${DecimalFormat("#.##").format(item.amount)} ₽",
+                    fontSize = 16.sp,
+                    style = TextStyle(
+                        color = if (item.amount > 0) Color(
+                            0,
+                            128,
+                            0
+                        ) else Color.Black
+                    )
+                )
+                Text(
+                    text = SimpleDateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+                        .format(Date(item.time.seconds * 1000))
+                )
             }
         },
+    )
+}
+
+@Composable
+fun ItemIcon(type: TransactionType) {
+    val resource = when (type) {
+        TransactionType.FAST_FOOD -> R.drawable.fast_food
+        TransactionType.RESTAURANT -> R.drawable.restaurant
+        TransactionType.INCOMING -> R.drawable.replenishment
+        TransactionType.UNRECOGNIZED -> R.drawable.ic_launcher_foreground
+    }
+    val bgColor = when (type) {
+        TransactionType.FAST_FOOD -> Color(129, 199, 137)
+        TransactionType.RESTAURANT -> Color(129, 199, 137)
+        TransactionType.INCOMING -> Color(236, 87, 35)
+        TransactionType.UNRECOGNIZED -> Color.Black
+    }
+    Icon(
+        painter = painterResource(resource),
+        contentDescription = "History item logo",
+        tint = Color.White,
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(bgColor)
     )
 }
 

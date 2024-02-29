@@ -121,7 +121,7 @@ class BalanceWidget : GlanceAppWidget() {
             }
             Row {
                 Text(
-                    text = "Balance: ${balance.value.toInt()} ₽",
+                    text = context.getString(R.string.balance, balance.value.toInt().toString()),
                     style = TextStyle(fontSize = 12.sp)
                 )
             }

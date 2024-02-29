@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">СУП Баланс</string>
+    <string name="app_widget_description">Быстро проверьте баланс и оставшийся дневной лимит</string>
+    <string name="balance">Баланс: %1$s ₽</string>
+    <string name="last_updated">Последнее обновление</string>
+    <string name="history">История операций</string>
+    <string name="balance_sample">Баланс: 4700 ₽</string>
+    <string name="time_sample">13:45</string>
+    <string name="error">Ошибка</string>
+    <string name="error_message">При извлечении данных произошла ошибка</string>
+</resources>

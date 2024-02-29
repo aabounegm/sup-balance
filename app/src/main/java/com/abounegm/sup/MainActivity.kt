@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -220,7 +221,7 @@ fun Header() {
         }
         Row {
             Text(
-                text = "Last updated\n${lastUpdated.value}",
+                text = stringResource(R.string.last_updated) + "\n${lastUpdated.value}",
                 style = TextStyle(textAlign = TextAlign.End, fontSize = 15.sp),
                 modifier = Modifier.padding(4.dp, 0.dp)
             )
@@ -251,10 +252,10 @@ fun Header() {
     if (errorMsg != null) {
         AlertDialog(
             title = {
-                Text("Error")
+                Text(stringResource(R.string.error))
             },
             text = {
-                Text(text = "An error occurred while fetching data:\n$errorMsg")
+                Text(text = stringResource(R.string.error_message) + ":\n" + errorMsg)
             },
             onDismissRequest = {
                 errorMsg = null
@@ -306,7 +307,7 @@ fun Balance() {
     Row(
         Modifier.fillMaxWidth(),
     ) {
-        Text("Balance: ${DecimalFormat("#.##").format(balance.value)} ₽")
+        Text(stringResource(R.string.balance, DecimalFormat("#.##").format(balance.value)))
     }
 
 }
@@ -322,7 +323,7 @@ fun HistorySection() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            "History",
+            stringResource(R.string.history),
             fontSize = 24.sp,
             style = TextStyle(textDecoration = TextDecoration.Underline)
         )

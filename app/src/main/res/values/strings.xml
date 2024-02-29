@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">СУП Balance</string>
     <string name="app_widget_description">Quickly check the balance and remaining daily limit</string>
+    <string name="balance">Balance: %1$s ₽</string>
+    <string name="balance_sample">Balance: 4700 ₽</string>
+    <string name="last_updated">Last updated</string>
+    <string name="history">History</string>
+    <string name="time_sample">12:45 PM</string>
+    <string name="error">Error</string>
+    <string name="error_message">An error occurred while fetching data</string>
 </resources>

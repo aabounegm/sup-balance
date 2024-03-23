@@ -278,6 +278,7 @@ fun DailyLimit() {
     val context = LocalContext.current
     val store = BalanceStore(context)
     val remainingAmount = store.getRemaining.collectAsState(initial = 0)
+    val totalLimit = store.getTotalLimit.collectAsState(initial = 0)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -291,7 +292,7 @@ fun DailyLimit() {
         )
         Text(
             modifier = Modifier.alignByBaseline(),
-            text = " / 750 ₽",
+            text = " / ${DecimalFormat("#.##").format(totalLimit.value)} ₽",
             fontSize = 30.sp,
         )
     }

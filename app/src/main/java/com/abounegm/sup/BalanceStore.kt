@@ -51,6 +51,7 @@ class BalanceStore(private val context: Context) {
         private val LAST_UPDATED_KEY = stringPreferencesKey("last_updated")
         private val BALANCE_KEY = floatPreferencesKey("total_balance")
         private val REMAINING_KEY = floatPreferencesKey("remaining_limit")
+        private val TOTAL_LIMIT_KEY = floatPreferencesKey("total_limit")
     }
 
     val getCardNumber: Flow<String> = context.dataStore.data.map { preferences ->
@@ -63,6 +64,10 @@ class BalanceStore(private val context: Context) {
 
     val getBalance: Flow<Float> = context.dataStore.data.map { preferences ->
         preferences[BALANCE_KEY] ?: 0f
+    }
+
+    val getTotalLimit: Flow<Float> = context.dataStore.data.map { preferences ->
+        preferences[TOTAL_LIMIT_KEY] ?: 0f
     }
 
     val getRemaining: Flow<Float> = context.dataStore.data.map { preferences ->
@@ -89,6 +94,7 @@ class BalanceStore(private val context: Context) {
         val balance = fetchBalance(cardNumber)
         context.dataStore.edit { preferences ->
             preferences[BALANCE_KEY] = balance.balance.availableAmount
+            preferences[TOTAL_LIMIT_KEY] = limit.value
             preferences[REMAINING_KEY] = limit.value - limit.usedValue
             preferences[LAST_UPDATED_KEY] =
                 SimpleDateFormat.getTimeInstance(DateFormat.SHORT)

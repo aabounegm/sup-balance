@@ -109,7 +109,12 @@ class BalanceStore(private val context: Context) {
                     .setName(it.locationName.firstOrNull() ?: "Unknown name")
                     .setAmount(it.amount)
                     .setTime(timestamp)
-                    .setType(transactionTypeMap.getOrDefault(it.mcc, TransactionType.UNRECOGNIZED))
+                    .setType(
+                        if (it.reversal)
+                            TransactionType.REFUND
+                        else
+                            transactionTypeMap.getOrDefault(it.mcc, TransactionType.GENERIC)
+                    )
                     .build()
             }
             History.newBuilder().addAllTransactions(items).build()

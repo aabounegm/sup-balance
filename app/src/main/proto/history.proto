@@ -9,6 +9,8 @@ enum TransactionType {
   FAST_FOOD = 0;
   RESTAURANT = 1;
   INCOMING = 2;
+  REFUND = 3;
+  GENERIC = 4;
 }
 
 message HistoryItem {

@@ -372,12 +372,18 @@ fun ItemIcon(type: TransactionType) {
         TransactionType.FAST_FOOD -> R.drawable.fast_food
         TransactionType.RESTAURANT -> R.drawable.restaurant
         TransactionType.INCOMING -> R.drawable.replenishment
+        TransactionType.REFUND -> R.drawable.refund
+        TransactionType.GENERIC -> R.drawable.generic
         TransactionType.UNRECOGNIZED -> R.drawable.ic_launcher_foreground
     }
+    val green = Color(129, 199, 137)
+    val orange = Color(236, 87, 35)
     val bgColor = when (type) {
-        TransactionType.FAST_FOOD -> Color(129, 199, 137)
-        TransactionType.RESTAURANT -> Color(129, 199, 137)
-        TransactionType.INCOMING -> Color(236, 87, 35)
+        TransactionType.FAST_FOOD -> green
+        TransactionType.RESTAURANT -> green
+        TransactionType.INCOMING -> orange
+        TransactionType.REFUND -> orange
+        TransactionType.GENERIC -> green
         TransactionType.UNRECOGNIZED -> Color.Black
     }
     Icon(
@@ -385,6 +391,7 @@ fun ItemIcon(type: TransactionType) {
         contentDescription = "History item logo",
         tint = Color.White,
         modifier = Modifier
+            .size(60.dp)
             .clip(CircleShape)
             .background(bgColor)
     )

@@ -65,6 +65,7 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.time.Instant
 import java.util.Date
 
@@ -222,9 +223,15 @@ fun Header() {
             CardNumber()
         }
         Row {
+            val isOld = Duration.between(lastUpdated.value.toInstant(), Instant.now()).toHours() > 1
+
             Text(
                 text = stringResource(R.string.last_updated) + "\n${timeFormatter.format(lastUpdated.value)}",
-                style = TextStyle(textAlign = TextAlign.End, fontSize = 15.sp),
+                style = TextStyle(
+                    textAlign = TextAlign.End,
+                    fontSize = 15.sp,
+                    color = if (isOld) MaterialTheme.colorScheme.error else Color.Unspecified
+                ),
                 modifier = Modifier.padding(4.dp, 0.dp)
             )
             if (updating) {

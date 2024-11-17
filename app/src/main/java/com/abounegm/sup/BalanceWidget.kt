@@ -1,6 +1,7 @@
 package com.abounegm.sup
 
 import android.content.Context
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.Text
+import androidx.glance.text.TextDefaults
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +41,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.time.Instant
 import java.util.Date
 
@@ -71,6 +74,7 @@ class BalanceWidget : GlanceAppWidget() {
         val balance = store.getBalance.collectAsState(initial = 0f)
         val lastUpdated = store.getLastUpdated.collectAsState(initial = Date.from(Instant.EPOCH))
         val timeFormatter = SimpleDateFormat.getTimeInstance(DateFormat.SHORT)
+        val isOld = Duration.between(lastUpdated.value.toInstant(), Instant.now()).toHours() > 1
         var updating by remember { mutableStateOf(false) }
 
         Column(modifier = GlanceModifier.fillMaxHeight()) {
@@ -80,7 +84,12 @@ class BalanceWidget : GlanceAppWidget() {
             ) {
                 Text(
                     text = timeFormatter.format(lastUpdated.value),
-                    style = TextStyle(fontSize = 10.sp),
+                    style = TextStyle(
+                        fontSize = 10.sp,
+                        color =
+                        if (isOld) ColorProvider(MaterialTheme.colorScheme.error)
+                        else TextDefaults.defaultTextColor,
+                    ),
                     modifier = GlanceModifier.padding(5.dp, 0.dp)
                 )
                 if (updating) {

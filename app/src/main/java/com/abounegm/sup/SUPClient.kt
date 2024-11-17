@@ -44,7 +44,12 @@ data class BalanceResponse(
         val history: Array<BalanceHistory>,
         val smsInfoStatus: String,
         val smsNotificationAvailable: Boolean,
+        /** "food" or "virtual" */
         val cardType: String,
+        /** Only present if cardType == "virtual" */
+        val activationData: String?,
+        /** Only present if cardType == "virtual" */
+        val validUntil: String?,
     ) {
         data class BalanceDetails(val availableAmount: Float)
         data class BalanceHistory(
@@ -88,26 +93,30 @@ data class BalanceResponse(
     }
 }
 
-const val apiBase = "https://meal.gift-cards.ru/api/1/cards"
+const val apiBase = "https://meal.gift-cards.ru/api/1"
+const val physicalCardApiBase = "$apiBase/cards"
+const val virtualCardApiBase = "$apiBase/virtual-cards"
 
-fun fetchLimits(cardNumber: String): LimitsResponse.LimitsData.Limit {
-    val json = URL("$apiBase/$cardNumber/limits").readText()
+fun getApiUrl(cardData: CardData): String {
+    return when (cardData) {
+        is CardData.Virtual -> "$virtualCardApiBase/${cardData.card.phoneNumber}/${cardData.card.last4Digits}"
+        is CardData.Physical -> "$physicalCardApiBase/${cardData.card.cardNumber}"
+        else -> ""
+    }
+}
+
+fun fetchLimits(cardData: CardData): LimitsResponse.LimitsData.Limit? {
+    val url = getApiUrl(cardData)
+    val json = URL("$url/limits").readText()
     val response = Gson().fromJson(json, LimitsResponse::class.java)
     if (response.status != "OK") {
         throw Exception("SUP API failed")
     }
-    if (response.data.limits.isEmpty()) {
-        throw Exception("SUP API returned an empty list")
-    }
-    return response.data.limits.firstOrNull() ?: LimitsResponse.LimitsData.Limit(
-        "",
-        0f,
-        0f
-    )
+    return response.data.limits.firstOrNull()
 }
 
-fun fetchBalance(cardNumber: String): BalanceResponse.BalanceData {
-    val json = URL("$apiBase/$cardNumber?limit=10").readText()
+fun fetchBalance(cardData: CardData): BalanceResponse.BalanceData {
+    val json = URL("${getApiUrl(cardData)}?limit=10").readText()
     val response = Gson().fromJson(json, BalanceResponse::class.java)
     if (response.status != "OK") {
         throw Exception("SUP API failed")

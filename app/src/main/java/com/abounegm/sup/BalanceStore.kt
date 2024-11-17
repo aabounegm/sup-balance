@@ -57,6 +57,13 @@ object CardInfoSerializer : Serializer<CardInfo> {
     ) = t.writeTo(output)
 }
 
+/** A wrapper since Kotlin doesn't support type unions */
+sealed class CardData {
+    data class Physical(val card: PhysicalCard) : CardData()
+    data class Virtual(val card: VirtualCard) : CardData()
+    data object None : CardData()
+}
+
 class BalanceStore(private val context: Context) {
     companion object {
         private val Context.oldDataStore: DataStore<Preferences> by preferencesDataStore("cardInfo")
@@ -102,12 +109,37 @@ class BalanceStore(private val context: Context) {
         private val TOTAL_LIMIT_KEY = floatPreferencesKey("total_limit")
     }
 
-    val getCardNumber: Flow<String> = context.cardStore.data.map { card ->
-        when (card.cardCase) {
-            null -> "" // to silence warning about Java
-            CardInfo.CardCase.CARD_NOT_SET -> ""
-            CardInfo.CardCase.PHYSICALCARD -> card.physicalCard.cardNumber
-            CardInfo.CardCase.VIRTUALCARD -> "** " + card.virtualCard.last4Digits
+    val getCardInfo: Flow<CardData> = context.cardStore.data.map { card ->
+        if (card.hasPhysicalCard())
+            CardData.Physical(card.physicalCard)
+        else if (card.hasVirtualCard())
+            CardData.Virtual(card.virtualCard)
+        else
+            CardData.None
+    }
+
+    suspend fun setCardInfo(cardInfo: CardData) {
+        context.cardStore.updateData { card ->
+            val builder = card.toBuilder()
+
+            when (cardInfo) {
+                is CardData.None -> {} // impossible case
+                is CardData.Physical -> {
+                    builder.setPhysicalCard(
+                        PhysicalCard.newBuilder().setCardNumber(cardInfo.card.cardNumber)
+                    )
+                }
+
+                is CardData.Virtual -> {
+                    builder.setVirtualCard(
+                        VirtualCard.newBuilder()
+                            .setPhoneNumber(cardInfo.card.phoneNumber)
+                            .setLast4Digits(cardInfo.card.last4Digits)
+                    )
+                }
+            }
+
+            builder.build()
         }
     }
 
@@ -130,14 +162,6 @@ class BalanceStore(private val context: Context) {
 
     val getHistory: Flow<History> = context.historyStore.data
 
-    suspend fun saveCardNumber(cardNumber: String) {
-        context.cardStore.updateData { preferences ->
-            preferences.toBuilder()
-                .setPhysicalCard(PhysicalCard.newBuilder().setCardNumber(cardNumber))
-                .build()
-        }
-    }
-
     private val transactionTypeMap: Map<String, TransactionType> = mapOf(
         "5814" to TransactionType.FAST_FOOD,
         "6010" to TransactionType.INCOMING,
@@ -145,7 +169,7 @@ class BalanceStore(private val context: Context) {
     )
 
     suspend fun updateValues() {
-        val cardNumber = getCardNumber.first()
+        val cardNumber = getCardInfo.first()
         val limit = fetchLimits(cardNumber)
         val balance = fetchBalance(cardNumber)
 

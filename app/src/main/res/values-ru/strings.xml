@@ -9,4 +9,11 @@
     <string name="time_sample">13:45</string>
     <string name="error">Ошибка</string>
     <string name="error_message">При извлечении данных произошла ошибка</string>
+    <string name="physical_card">Физическая карта</string>
+    <string name="virtual_card">Виртуальная карта</string>
+    <string name="phone_number">Номер телефона</string>
+    <string name="last_4_digits">Последние 4 цифры номера карты</string>
+    <string name="card_number">Номер карты</string>
+    <string name="cancel">Отменить</string>
+    <string name="confirm">Сохранить</string>
 </resources>

@@ -10,24 +10,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -57,6 +60,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.abounegm.sup.ui.theme.СУПBalanceTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -114,65 +118,208 @@ fun CardNumber() {
     val context = LocalContext.current
     val store = BalanceStore(context)
     val emptyCardNumber = "0".repeat(cardNumberLength)
-    val cardNumber = store.getCardNumber.collectAsState(initial = emptyCardNumber)
+    val cardData = store.getCardInfo.collectAsState(initial = CardData.None)
     var editing by remember { mutableStateOf(false) }
 
+    val text = when (cardData.value) {
+        is CardData.None -> emptyCardNumber
+        is CardData.Virtual -> "** " + (cardData.value as CardData.Virtual).card.last4Digits
+        is CardData.Physical -> CardMaskTransformation()
+            .filter(AnnotatedString((cardData.value as CardData.Physical).card.cardNumber
+                .ifBlank { emptyCardNumber }
+                .toString())
+            ).text.text
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(text = text)
+        IconButton(onClick = { editing = true }) {
+            Icon(Icons.Outlined.Edit, "Edit")
+        }
+    }
+
     if (editing) {
-        val cardNumberField = remember { mutableStateOf(cardNumber.value) }
-        var validationError by remember { mutableStateOf<String?>(null) }
-
-        fun validate(input: String): Boolean {
-            validationError = if (input.length != cardNumberLength) {
-                "The card number must be exactly $cardNumberLength digits"
-            } else {
-                null
-            }
-            return validationError == null
-        }
-
-        Row {
-            TextField(
-                modifier = Modifier.width(180.dp),
-                placeholder = {
-                    Text(CardMaskTransformation().filter(AnnotatedString(emptyCardNumber)).text)
-                },
-                value = cardNumberField.value,
-                singleLine = true,
-                onValueChange = { value ->
-                    cardNumberField.value = value
-                        .filter { it.isDigit() }
-                        .take(cardNumberLength)
-                    validationError = null
-                },
-                visualTransformation = CardMaskTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = validationError != null,
-                supportingText = {
-                    validationError?.let { Text(it) }
-                }
-            )
-            IconButton(onClick = {
+        CardNumberEditDialog(
+            onDismissRequest = { editing = false },
+            onConfirmation = {
                 CoroutineScope(Dispatchers.IO).launch {
-                    store.saveCardNumber(cardNumberField.value)
+                    store.setCardInfo(it)
+                    store.updateValues()
                 }
-                if (validate(cardNumberField.value)) {
-                    editing = false
-                }
-            }) {
-                Icon(Icons.Outlined.Check, "Confirm")
+                editing = false
+            },
+            initialData = cardData.value,
+        )
+    }
+}
+
+@Composable
+fun CardNumberEditDialog(
+    onDismissRequest: () -> Unit,
+    onConfirmation: (CardData) -> Unit,
+    initialData: CardData?
+) {
+    var isVirtual by remember { mutableStateOf(initialData is CardData.Virtual) }
+    var phoneNumberField by remember {
+        mutableStateOf(
+            when (initialData) {
+                is CardData.Virtual -> initialData.card.phoneNumber
+                else -> "+7"
             }
-        }
-    } else {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = CardMaskTransformation()
-                    .filter(AnnotatedString(cardNumber.value
-                        .ifBlank { emptyCardNumber }
-                        .toString())
-                    ).text,
-            )
-            IconButton(onClick = { editing = true }) {
-                Icon(Icons.Outlined.Edit, "Edit")
+        )
+    }
+    var cardNumberField by remember {
+        mutableStateOf(
+            when (initialData) {
+                is CardData.Physical -> initialData.card.cardNumber
+                else -> ""
+            }
+        )
+    }
+    var last4DigitsField by remember {
+        mutableStateOf(
+            when (initialData) {
+                is CardData.Virtual -> initialData.card.last4Digits
+                else -> ""
+            }
+        )
+    }
+
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(375.dp)
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceAround,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .selectable(
+                            selected = !isVirtual,
+                            onClick = { isVirtual = false }
+                        )
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(
+                        selected = !isVirtual,
+                        onClick = { isVirtual = false }
+                    )
+                    Text(
+                        text = stringResource(R.string.physical_card),
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .selectable(
+                            selected = isVirtual,
+                            onClick = { isVirtual = true }
+                        )
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(
+                        selected = isVirtual,
+                        onClick = { isVirtual = true }
+                    )
+                    Text(
+                        text = stringResource(R.string.virtual_card),
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+
+                // TODO: add validation to all fields
+                if (isVirtual) {
+                    Row {
+                        TextField(
+                            label = { Text(stringResource(R.string.phone_number)) },
+                            placeholder = { Text("+79123456789") },
+                            value = phoneNumberField,
+                            singleLine = true,
+                            onValueChange = { value ->
+                                phoneNumberField = value.filter { it.isDigit() || it == '+' }
+                            },
+                            // TODO: transform to look like phone number
+                            // visualTransformation = CardMaskTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        )
+                    }
+                    Row {
+                        TextField(
+                            label = { Text(stringResource(R.string.last_4_digits)) },
+                            placeholder = {
+                                Text("1234")
+                            },
+                            value = last4DigitsField,
+                            singleLine = true,
+                            onValueChange = { value ->
+                                last4DigitsField = value.filter { it.isDigit() }.take(4)
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        )
+                    }
+                } else {
+                    Row {
+                        TextField(
+                            label = { Text(stringResource(R.string.card_number)) },
+                            placeholder = {
+                                Text("2 123456 123456")
+                            },
+                            value = cardNumberField,
+                            singleLine = true,
+                            onValueChange = { value ->
+                                cardNumberField = value.filter { it.isDigit() }
+                            },
+                            visualTransformation = CardMaskTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(
+                        onClick = { onDismissRequest() },
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    TextButton(
+                        onClick = {
+                            val cardData = if (isVirtual) {
+                                CardData.Virtual(
+                                    VirtualCard.newBuilder()
+                                        .setPhoneNumber(phoneNumberField)
+                                        .setLast4Digits(last4DigitsField)
+                                        .build()
+                                )
+                            } else {
+                                CardData.Physical(
+                                    PhysicalCard.newBuilder()
+                                        .setCardNumber(cardNumberField)
+                                        .build()
+                                )
+                            }
+                            onConfirmation(cardData)
+                        },
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Text(stringResource(R.string.confirm))
+                    }
+                }
             }
         }
     }

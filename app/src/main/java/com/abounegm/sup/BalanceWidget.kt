@@ -35,7 +35,12 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.Date
 
 class BalanceWidget : GlanceAppWidget() {
 
@@ -62,9 +67,10 @@ class BalanceWidget : GlanceAppWidget() {
     @Composable
     private fun WidgetBody(context: Context) {
         val store = BalanceStore(context)
-        val remainingAmount = store.getRemaining.collectAsState(initial = 0f)
+        val remainingAmount = store.getLimit.map { it?.remainingLimit }.collectAsState(initial = 0f)
         val balance = store.getBalance.collectAsState(initial = 0f)
-        val lastUpdated = store.getLastUpdated.collectAsState(initial = "")
+        val lastUpdated = store.getLastUpdated.collectAsState(initial = Date.from(Instant.EPOCH))
+        val timeFormatter = SimpleDateFormat.getTimeInstance(DateFormat.SHORT)
         var updating by remember { mutableStateOf(false) }
 
         Column(modifier = GlanceModifier.fillMaxHeight()) {
@@ -73,7 +79,7 @@ class BalanceWidget : GlanceAppWidget() {
                 horizontalAlignment = Alignment.End,
             ) {
                 Text(
-                    text = lastUpdated.value,
+                    text = timeFormatter.format(lastUpdated.value),
                     style = TextStyle(fontSize = 10.sp),
                     modifier = GlanceModifier.padding(5.dp, 0.dp)
                 )
@@ -115,7 +121,7 @@ class BalanceWidget : GlanceAppWidget() {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "${remainingAmount.value.toInt()} ₽",
+                    text = "${remainingAmount.value?.toInt()} ₽",
                     style = TextStyle(fontSize = 26.sp)
                 )
             }

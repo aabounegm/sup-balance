@@ -65,6 +65,7 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.Date
 
 class MainActivity : ComponentActivity() {
@@ -210,7 +211,8 @@ fun Header() {
     val store = BalanceStore(context)
     var updating by remember { mutableStateOf(false) }
     var errorMsg: String? by remember { mutableStateOf(null) }
-    val lastUpdated = store.getLastUpdated.collectAsState(initial = "Never")
+    val lastUpdated = store.getLastUpdated.collectAsState(initial = Date.from(Instant.EPOCH))
+    val timeFormatter = SimpleDateFormat.getTimeInstance(DateFormat.SHORT)
 
     Row(
         Modifier.fillMaxWidth(),
@@ -221,7 +223,7 @@ fun Header() {
         }
         Row {
             Text(
-                text = stringResource(R.string.last_updated) + "\n${lastUpdated.value}",
+                text = stringResource(R.string.last_updated) + "\n${timeFormatter.format(lastUpdated.value)}",
                 style = TextStyle(textAlign = TextAlign.End, fontSize = 15.sp),
                 modifier = Modifier.padding(4.dp, 0.dp)
             )
@@ -277,8 +279,7 @@ fun Header() {
 fun DailyLimit() {
     val context = LocalContext.current
     val store = BalanceStore(context)
-    val remainingAmount = store.getRemaining.collectAsState(initial = 0)
-    val totalLimit = store.getTotalLimit.collectAsState(initial = 0)
+    val limit = store.getLimit.collectAsState(initial = Limit.getDefaultInstance())
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -287,12 +288,12 @@ fun DailyLimit() {
     ) {
         Text(
             modifier = Modifier.alignByBaseline(),
-            text = DecimalFormat("#.##").format(remainingAmount.value),
+            text = DecimalFormat("#.##").format(limit.value?.remainingLimit),
             fontSize = 60.sp,
         )
         Text(
             modifier = Modifier.alignByBaseline(),
-            text = " / ${DecimalFormat("#.##").format(totalLimit.value)} ₽",
+            text = " / ${DecimalFormat("#.##").format(limit.value?.totalLimit)} ₽",
             fontSize = 30.sp,
         )
     }

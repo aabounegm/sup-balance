@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.abounegm.sup";
+option java_multiple_files = true;
+
+message PhysicalCard {
+  string cardNumber = 1;
+}
+
+message VirtualCard {
+  string phoneNumber = 1;
+  string last4Digits = 2;
+}
+
+message Limit {
+  float total_limit = 1;
+  float remaining_limit = 2;
+}
+
+message CardInfo {
+  oneof card {
+    PhysicalCard physicalCard = 1;
+    VirtualCard virtualCard = 2;
+  }
+  float total_balance = 3;
+  optional Limit limit = 4;
+  google.protobuf.Timestamp last_updated = 5;
+}

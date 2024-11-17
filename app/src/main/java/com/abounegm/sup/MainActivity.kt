@@ -101,9 +101,9 @@ fun App() {
             Box(modifier = Modifier.padding(10.dp)) {
                 Header()
             }
-            DailyLimit()
+            MainContent()
             Box(modifier = Modifier.padding(10.dp)) {
-                Balance()
+                SecondaryContent()
             }
             Divider(thickness = 2.dp)
             HistorySection()
@@ -429,41 +429,57 @@ fun Header() {
     }
 }
 
+/** Displays the limit if applicable, otherwise the total balance */
 @Composable
-fun DailyLimit() {
+fun MainContent() {
     val context = LocalContext.current
     val store = BalanceStore(context)
-    val limit = store.getLimit.collectAsState(initial = Limit.getDefaultInstance())
+    val limit = store.getLimit.collectAsState(initial = null)
+    val balance = store.getBalance.collectAsState(initial = 0f)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.Bottom
     ) {
-        Text(
-            modifier = Modifier.alignByBaseline(),
-            text = DecimalFormat("#.##").format(limit.value?.remainingLimit),
-            fontSize = 60.sp,
-        )
-        Text(
-            modifier = Modifier.alignByBaseline(),
-            text = " / ${DecimalFormat("#.##").format(limit.value?.totalLimit)} ₽",
-            fontSize = 30.sp,
-        )
+        if (limit.value != null) {
+            Text(
+                modifier = Modifier.alignByBaseline(),
+                text = DecimalFormat("#.##").format(limit.value?.remainingLimit),
+                fontSize = 60.sp,
+            )
+            Text(
+                modifier = Modifier.alignByBaseline(),
+                text = " / ${DecimalFormat("#.##").format(limit.value?.totalLimit)} ₽",
+                fontSize = 30.sp,
+            )
+        } else {
+            Text(
+                modifier = Modifier.alignByBaseline(),
+                text = DecimalFormat("#.##").format(balance.value) + " ₽",
+                fontSize = 60.sp,
+            )
+        }
     }
 
 }
 
+/** Displays the balance (if not already displayed), and the expiry date for virtual cards */
 @Composable
-fun Balance() {
+fun SecondaryContent() {
     val context = LocalContext.current
     val store = BalanceStore(context)
     val balance = store.getBalance.collectAsState(initial = 0f)
+    val limit = store.getLimit.collectAsState(initial = null)
 
     Row(
         Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(stringResource(R.string.balance, DecimalFormat("#.##").format(balance.value)))
+        if (limit.value != null) {
+            Text(stringResource(R.string.balance, DecimalFormat("#.##").format(balance.value)))
+        }
+        // TODO: display expiry date for virtual cards
     }
 
 }

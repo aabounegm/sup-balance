@@ -191,6 +191,8 @@ class BalanceStore(private val context: Context) {
                         .setTotalLimit(limit.value)
                         .setRemainingLimit(limit.value - limit.usedValue)
                 )
+            } else {
+                builder.clearLimit()
             }
             builder.build()
         }

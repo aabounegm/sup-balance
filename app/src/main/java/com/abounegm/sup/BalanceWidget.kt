@@ -130,15 +130,21 @@ class BalanceWidget : GlanceAppWidget() {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "${remainingAmount.value?.toInt()} ₽",
+                    text = "${(remainingAmount.value ?: balance.value).toInt()} ₽",
                     style = TextStyle(fontSize = 26.sp)
                 )
             }
-            Row {
-                Text(
-                    text = context.getString(R.string.balance, balance.value.toInt().toString()),
-                    style = TextStyle(fontSize = 12.sp)
-                )
+            if (remainingAmount.value != null) {
+                // TODO: show expiry date for virtual cards instead
+                Row {
+                    Text(
+                        text = context.getString(
+                            R.string.balance,
+                            balance.value.toInt().toString()
+                        ),
+                        style = TextStyle(fontSize = 12.sp),
+                    )
+                }
             }
         }
     }

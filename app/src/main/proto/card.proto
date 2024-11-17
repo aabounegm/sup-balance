@@ -12,6 +12,7 @@ message PhysicalCard {
 message VirtualCard {
   string phoneNumber = 1;
   string last4Digits = 2;
+  string expiryDate = 3;
 }
 
 message Limit {

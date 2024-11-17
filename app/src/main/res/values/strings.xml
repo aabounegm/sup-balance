@@ -15,4 +15,5 @@
     <string name="card_number">Card number</string>
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
+    <string name="expires">Valid until: %1$s</string>
 </resources>

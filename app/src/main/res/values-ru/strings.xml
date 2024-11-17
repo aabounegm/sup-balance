@@ -16,4 +16,5 @@
     <string name="card_number">Номер карты</string>
     <string name="cancel">Отменить</string>
     <string name="confirm">Сохранить</string>
+    <string name="expires">Действует до %1$s</string>
 </resources>

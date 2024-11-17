@@ -73,6 +73,7 @@ class BalanceWidget : GlanceAppWidget() {
         val remainingAmount = store.getLimit.map { it?.remainingLimit }.collectAsState(initial = 0f)
         val balance = store.getBalance.collectAsState(initial = 0f)
         val lastUpdated = store.getLastUpdated.collectAsState(initial = Date.from(Instant.EPOCH))
+        val cardInfo = store.getCardInfo.collectAsState(initial = CardData.None)
         val timeFormatter = SimpleDateFormat.getTimeInstance(DateFormat.SHORT)
         val isOld = Duration.between(lastUpdated.value.toInstant(), Instant.now()).toHours() > 1
         var updating by remember { mutableStateOf(false) }
@@ -134,15 +135,23 @@ class BalanceWidget : GlanceAppWidget() {
                     style = TextStyle(fontSize = 26.sp)
                 )
             }
-            if (remainingAmount.value != null) {
-                // TODO: show expiry date for virtual cards instead
-                Row {
+
+            Row {
+                if (remainingAmount.value != null) {
                     Text(
                         text = context.getString(
                             R.string.balance,
                             balance.value.toInt().toString()
                         ),
                         style = TextStyle(fontSize = 12.sp),
+                    )
+                } else if (cardInfo.value is CardData.Virtual) {
+                    Text(
+                        text = context.getString(
+                            R.string.expires,
+                            (cardInfo.value as CardData.Virtual).card.expiryDate
+                        ),
+                        style = TextStyle(fontSize = 10.sp),
                     )
                 }
             }

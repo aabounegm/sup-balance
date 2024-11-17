@@ -185,6 +185,13 @@ class BalanceStore(private val context: Context) {
                         .setNanos(now.nano)
                 )
 
+            if (balance.cardType == "virtual") {
+                builder.setVirtualCard(
+                    builder.virtualCard.toBuilder()
+                        .setExpiryDate(balance.validUntil)
+                )
+            }
+
             if (limit != null) {
                 builder.setLimit(
                     Limit.newBuilder()

@@ -471,6 +471,7 @@ fun SecondaryContent() {
     val store = BalanceStore(context)
     val balance = store.getBalance.collectAsState(initial = 0f)
     val limit = store.getLimit.collectAsState(initial = null)
+    val cardInfo = store.getCardInfo.collectAsState(initial = CardData.None)
 
     Row(
         Modifier.fillMaxWidth(),
@@ -479,7 +480,14 @@ fun SecondaryContent() {
         if (limit.value != null) {
             Text(stringResource(R.string.balance, DecimalFormat("#.##").format(balance.value)))
         }
-        // TODO: display expiry date for virtual cards
+        if (cardInfo.value is CardData.Virtual) {
+            Text(
+                stringResource(
+                    R.string.expires,
+                    (cardInfo.value as CardData.Virtual).card.expiryDate
+                )
+            )
+        }
     }
 
 }
